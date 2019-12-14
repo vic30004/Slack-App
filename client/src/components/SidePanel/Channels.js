@@ -21,7 +21,7 @@ export class Channels extends Component {
       let loadedChannels = [];
       this.state.channelsRef.on('child_added', snap=>{
           loadedChannels.push(snap.val());
-          console.log(loadedChannels)
+          this.setState({channels: loadedChannels})
       })
   }
 
@@ -60,6 +60,20 @@ export class Channels extends Component {
       });
   };
 
+  displayChannels = channels =>(
+      channels.length >0 && channels.map(channel =>(
+          <Menu.Item
+          
+            key={channel.id}
+            onClick={()=>console.log(channel)}
+            name={channel.name}
+            style={{opacity:0.7}}
+          >
+          # {channel.name}
+          </Menu.Item>
+      ))
+  )
+
   handleChange = e => {
     this.setState({ [e.target.name]: e.target.value });
   };
@@ -71,7 +85,7 @@ export class Channels extends Component {
 
   closeModal = () => this.setState({ modal: false });
   render() {
-    const { channels, modal } = this.state;
+    const {  modal,channels } = this.state;
     return (
       <Fragment>
         <Menu.Menu style={{ paddingBottom: '2em' }}>
@@ -82,6 +96,9 @@ export class Channels extends Component {
             </span>{' '}
             ({channels.length})<Icon name='add' onClick={this.openModal} />
           </Menu.Item>
+          {this.displayChannels(channels)}
+          </Menu.Menu>
+
           <Modal basic open={modal} onClose={this.closeModal}>
             <Modal.Header>Add a Channel</Modal.Header>
             <Modal.Content>
@@ -116,7 +133,7 @@ export class Channels extends Component {
               </Button>
             </Modal.Actions>
           </Modal>
-        </Menu.Menu>
+       
       </Fragment>
     );
   }
