@@ -12,7 +12,10 @@ export class Messages extends Component {
     channel: this.props.currentChannel,
     user: this.props.currentUser,
     messages:[],
-    messagesLoading:true
+    messagesLoading:true,
+    numUniqueUsers:'',
+    searchTerm:'',
+    searchLoading:false
   };
 
   componentDidMount(){
@@ -27,6 +30,26 @@ export class Messages extends Component {
   addListeners =(channelId)=>{
     this.addMessageListener(channelId)
   }
+  countUniqueUsers = messages=>{
+    const uniqueUsers = messages.reduce((acc, message)=>{
+      if(!acc.includes(message.user.name)){
+        acc.push(message.user.name)
+      }
+      return acc;
+    },[])
+    const plural = uniqueUsers.length>1  || uniqueUsers.length===0
+
+    const numUniqueUsers =  `${uniqueUsers.length} user${plural ? "s":''}`
+    this.setState({numUniqueUsers})
+  }
+
+  handleSearchChange =e =>{
+    this.setState({
+      searchTerm: e.target.value,
+      searchLoading: true
+    });
+
+  }
 
   addMessageListener=(channelId)=>{
     let loadedMessages=[];
@@ -35,7 +58,8 @@ export class Messages extends Component {
       this.setState({
         messages: loadedMessages,
         messagesLoading: false
-      })
+      });
+      this.countUniqueUsers(loadedMessages)
     })
   }
 
@@ -51,12 +75,15 @@ export class Messages extends Component {
     ))
     
   )
+
+    displayChannelName= channel =>channel? `${channel.name}`:'';
+
   render() {
 
-    const { messagesRef,channel,user, messages } = this.state;
+    const { messagesRef,channel,user, messages,numUniqueUsers } = this.state;
     return (
       <Fragment>
-        <MessagessHeader />
+        <MessagessHeader channelName={this.displayChannelName(channel)}  numUniqueUsers={numUniqueUsers} handleSearchChange={this.handleSearchChange}/>
         <Segment>
           <Comment.Group className='messages'>
           {this.displayMessages(messages)}
