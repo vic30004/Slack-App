@@ -81,6 +81,7 @@ export class Messages extends Component {
   displayMessages=(messages)=>(
     messages.length>0 && messages.map(message =>(
       <Message 
+      style={{width:'100vw'}}
       key={message.timestamp}
       message={message}
       user={this.state.user}

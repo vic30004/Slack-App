@@ -4,9 +4,8 @@ import moment from 'moment'
 
 
 const Message = ({message,user}) => {
-
     const isOwnMessage = (message,user)=>{
-        return message.user.uid === user.uid ? 'message__self':'';
+        return message.user.id === user.uid ? 'message__self':'';
     }
 
     const isImage = (message) =>{
@@ -14,7 +13,7 @@ const Message = ({message,user}) => {
     }
     const timeFromNow = timestamp=>moment(timestamp).fromNow()
     return (
-        <Comment>
+        <Comment style={{margin:'0'}}>
             <Comment.Avatar src={message.user.avatar}/>
             <Comment.Content className={isOwnMessage(message,user)}>
                 <Comment.Author as="a">{message.user.name}</Comment.Author>
