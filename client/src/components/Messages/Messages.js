@@ -7,6 +7,7 @@ import Typing from './Typing';
 import Message from './Message';
 import { connect } from 'react-redux';
 import { setUserPosts } from '../../actions';
+import Skeleton from './Skeleton'
 
 export class Messages extends Component {
   state = {
@@ -30,11 +31,20 @@ export class Messages extends Component {
 
   componentDidMount() {
     const { channel, user } = this.state;
-
     if (channel && user) {
       this.addListeners(channel.id);
       this.addUserStarsListener(channel.id, user.uid);
     }
+  }
+
+  componentDidUpdate(prevProps, prevState){
+    if(this.messagesEnd){
+      this.scrollToBottom()
+    }
+  }
+
+  scrollToBottom = ()=>{
+    this.messagesEnd.scrollIntoView({behavior: 'smooth'})
   }
 
   addUserStarsListener = (channelId, userId) => {
@@ -153,6 +163,16 @@ export class Messages extends Component {
       />
     ));
 
+    displayMessagesSkeleton = loading =>(
+      loading ? (
+        <Fragment>
+        {[...Array(10)].map((_,i)=>(
+          <Skeleton key={i}/>
+        ))}
+        </Fragment>
+      ):null
+    )
+
   displayChannelName = channel => {
     return channel
       ? `${this.state.privateChannel ? '@' : '#'}${channel.name}`
@@ -240,7 +260,8 @@ export class Messages extends Component {
       searchResults,
       privateChannel,
       isChannelStarred,
-      typingUsers
+      typingUsers,
+      messagesLoading
     } = this.state;
     return (
       <Fragment>
@@ -254,12 +275,13 @@ export class Messages extends Component {
         />
         <Segment className='messages'>
           <Comment.Group size='large'>
+          {this.displayMessagesSkeleton(messagesLoading)}
             {searchTerm
               ? this.displayMessages(searchResults)
-              : this.displayMessages(messages)}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+              : this.displayMessages(messages)}          
               {this.displayTypingUsers(typingUsers)}
-            </div>
+
+              <div ref={node => (this.messagesEnd = node)}></div>
           </Comment.Group>
         </Segment>
         <MessageForm
