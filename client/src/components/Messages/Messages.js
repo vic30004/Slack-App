@@ -159,7 +159,7 @@ export class Messages extends Component {
       : '';
   };
 
-  displayTypingUsers = users => {
+  displayTypingUsers = users => (
     users.length > 0 &&
       users.map(user => (
         <div
@@ -170,11 +170,11 @@ export class Messages extends Component {
           }}
           key={user.id}
         >
-          <span className='user__typing'>{user.name}</span>
-          <Typing />
+          <span className='user__typing'>{user.name}</span><Typing />
+          
         </div>
-      ));
-  };
+      ))
+  );
 
   getMessagesRef = () => {
     const { messagesRef, privateMessagesRef, privateChannel } = this.state;
