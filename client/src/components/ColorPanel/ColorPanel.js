@@ -1,4 +1,4 @@
-import React, { Component,Fragment } from 'react';
+import React, { Component, Fragment } from 'react';
 import {
   Sidebar,
   Menu,
@@ -9,9 +9,9 @@ import {
   Label,
   Segment
 } from 'semantic-ui-react';
-import firebase from '../../firebase'
-import {connect} from 'react-redux';
-import {setColors} from '../../actions'
+import firebase from '../../firebase';
+import { connect } from 'react-redux';
+import { setColors } from '../../actions';
 
 import { SliderPicker } from 'react-color';
 
@@ -21,38 +21,50 @@ export class ColorPanel extends Component {
     primary: '',
     secondary: '',
     user: this.props.currentUser,
-    usersRef : firebase.database().ref('users'),
-    userColors:[]
+    usersRef: firebase.database().ref('users'),
+    userColors: []
   };
 
-  componentDidMount () {
-      if(this.state.user) {
-          this.addListener(this.state.user.uid)
-      }
+  componentDidMount() {
+    if (this.state.user) {
+      this.addListener(this.state.user.uid);
+    }
   }
 
-  addListener = userId =>{
-      let userColors =[];
-      this.state.usersRef
-      .child(`${userId}/colors`)
-      .on('child_added', snap=>{
-          userColors.unshift(snap.val());
-         this.setState({userColors})
-      })
+  componentWillMount() {
+    this.removeListener();
   }
 
-  displayUserColors = colors =>(
-      colors.length >0 && colors.map((color,i) =>(
-          <Fragment key={i}>
-          <Divider/>
-          <div className="color__container" onClick={()=>this.props.setColors(color.primary, color.secondary)}>
-            <div className="color__square" style={{background: color.primary}}>
-                <div className="color__overlay" style={{background: color.secondary}}></div>
-            </div>
+  removeListener = () => {
+    this.state.usersRef.child(`${this.state.user.uid}/colors`).off();
+  };
+
+  addListener = userId => {
+    let userColors = [];
+    this.state.usersRef.child(`${userId}/colors`).on('child_added', snap => {
+      userColors.unshift(snap.val());
+      this.setState({ userColors });
+    });
+  };
+
+  displayUserColors = colors =>
+    colors.length > 0 &&
+    colors.map((color, i) => (
+      <Fragment key={i}>
+        <Divider />
+        <div
+          className='color__container'
+          onClick={() => this.props.setColors(color.primary, color.secondary)}
+        >
+          <div className='color__square' style={{ background: color.primary }}>
+            <div
+              className='color__overlay'
+              style={{ background: color.secondary }}
+            ></div>
           </div>
-          </Fragment>
-      ))
-  )
+        </div>
+      </Fragment>
+    ));
 
   openModal = () => {
     this.setState({ modal: true });
@@ -64,32 +76,31 @@ export class ColorPanel extends Component {
   handleChangePrimary = color => this.setState({ primary: color.hex });
   handleChangeSecondary = color => this.setState({ secondary: color.hex });
 
-  handleSaveColors = ()=>{
-      if(this.state.primary && this.state.secondary){
-          this.saveColors(this.state.primary, this.state.secondary)
-      }
-  }
+  handleSaveColors = () => {
+    if (this.state.primary && this.state.secondary) {
+      this.saveColors(this.state.primary, this.state.secondary);
+    }
+  };
 
-
-  saveColors = (primary,secondary) =>{
-        this.state.usersRef
-            .child(`${this.state.user.uid}/colors`)
-            .push()
-            .update({
-                primary,
-                secondary
-            })
-            .then(()=>{
-                console.log('Colors Added')
-                this.closeModal()
-            })
-            .catch(err=>{
-                console.error(err)
-            })
-  }
+  saveColors = (primary, secondary) => {
+    this.state.usersRef
+      .child(`${this.state.user.uid}/colors`)
+      .push()
+      .update({
+        primary,
+        secondary
+      })
+      .then(() => {
+        console.log('Colors Added');
+        this.closeModal();
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  };
 
   render() {
-    const { modal, primary, secondary,userColors } = this.state;
+    const { modal, primary, secondary, userColors } = this.state;
     return (
       <Sidebar
         as={Menu}
@@ -108,15 +119,18 @@ export class ColorPanel extends Component {
           <Modal.Content>
             <Segment inverted>
               <Label content='Primary Color' />
-              <SliderPicker onChange={this.handleChangePrimary} color={primary}/>
+              <SliderPicker
+                onChange={this.handleChangePrimary}
+                color={primary}
+              />
             </Segment>
 
             <Segment inverted>
-              <Label
-                content='Secondary Color'
-                
+              <Label content='Secondary Color' />
+              <SliderPicker
+                onChange={this.handleChangeSecondary}
+                color={secondary}
               />
-              <SliderPicker onChange={this.handleChangeSecondary} color={secondary}/>
             </Segment>
           </Modal.Content>
 
@@ -136,4 +150,4 @@ export class ColorPanel extends Component {
   }
 }
 
-export default connect(null, {setColors}) (ColorPanel);
+export default connect(null, { setColors })(ColorPanel);

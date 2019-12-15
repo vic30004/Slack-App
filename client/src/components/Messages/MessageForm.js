@@ -23,9 +23,16 @@ export class MessageForm extends Component {
     emojiPicker: false
   };
 
+  componentWillUnmount() {
+    if (this.state.uploadTask !== null) {
+      this.state.uploadTask.cancel();
+      this.setState({ uploadTask: null });
+    }
+  }
+
   getPath = () => {
     if (this.props.isPrivateChannel) {
-      return `chat/private-${this.state.channel.id}`;
+      return `chat/private/${this.state.channel.id}`;
     } else {
       return `chat/public`;
     }
@@ -101,7 +108,11 @@ export class MessageForm extends Component {
 
   handleChange = e => this.setState({ [e.target.name]: e.target.value });
 
-  handleKeyDown = () => {
+  handleKeyDown = e => {
+    if (e.keyCode === 13) {
+      this.sendMessage();
+    }
+
     const { message, typingRef, channel, user } = this.state;
     if (message) {
       typingRef
