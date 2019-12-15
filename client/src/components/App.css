@@ -48,3 +48,23 @@ body,
 .menu{
     padding-bottom: 2em;
 }
+
+/* Colorpannel */
+
+.color__container{
+    position: relative;
+    overflow: hidden;
+    width:35px;
+    border-radius: 3px;
+}
+
+.color__squre{
+    width: 35px;
+    border-radius: 35px;
+}
+
+.color__overlay{
+    width: 85px;
+    height: 35px;
+    transform: rotate(225deg);
+}

@@ -37,7 +37,6 @@ export class MetaPanel extends Component {
   render() {
     const { activeIndex, privateChannel, channel } = this.state;
     const{userPosts} = this.props
-    console.log(userPosts)
     if (privateChannel) return null;
 
     return (
