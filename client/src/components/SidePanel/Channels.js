@@ -148,6 +148,7 @@ export class Channels extends Component {
         count = notification.count;
       }
     })
+    if (count > 0 ) return count
   }
 
   displayChannels = channels =>
@@ -160,6 +161,9 @@ export class Channels extends Component {
         style={{ opacity: 0.7 }}
         active={channel.id === this.state.activeChannel}
       >
+      {this.getNotificationCount(channel) && (
+        <Label color ='red'>{this.getNotificationCount(channel)}</Label>
+      )}
         # {channel.name}
       </Menu.Item>
     ));
@@ -175,7 +179,7 @@ export class Channels extends Component {
 
   closeModal = () => this.setState({ modal: false });
   render() {
-    const { modal, channels } = this.state;
+    const { modal, channels,channel } = this.state;
     return (
       <Fragment>
         <Menu.Menu className='menu'>
@@ -186,10 +190,8 @@ export class Channels extends Component {
             </span>{' '}
             ({channels.length})<Icon name='add' onClick={this.openModal} />
           </Menu.Item>
-          {this.getNotificationCount(channels) && (
-            <Label color="red">{this.getNotificationCount(channels)}</Label>
-          )}
-          #{this.displayChannels(channels)}
+          
+          {this.displayChannels(channels)}
         </Menu.Menu>
 
         <Modal basic open={modal} onClose={this.closeModal}>
