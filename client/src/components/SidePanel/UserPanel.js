@@ -20,9 +20,12 @@ export class UserPanel extends Component {
     previewImage: '',
     croppedImage: '',
     uploadCroppedImage: '',
+    channel: this.props.currentChannel,
+    channelRef: firebase.database().ref('channel'),
     blob: '',
     storageRef: firebase.storage().ref(),
     userRef: firebase.auth().currentUser,
+    messagesRef: firebase.database().ref('messages'),
     metadata: {
       contentType: 'image/jpeg'
     },
@@ -30,10 +33,10 @@ export class UserPanel extends Component {
   };
 
 
-
   componentWillReceiveProps(nextProps) {
     this.setState({ user: nextProps.currentUser });
   }
+
 
   openModal = () => this.setState({ modal: true });
 
@@ -114,6 +117,7 @@ export class UserPanel extends Component {
       .catch(err => {
         console.error(err);
       });
+
   };
 
   handleCropImage = () => {

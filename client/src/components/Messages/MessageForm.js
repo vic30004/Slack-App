@@ -15,16 +15,17 @@ export class MessageForm extends Component {
     modal: false,
     uploadState: '',
     uploadTask: null,
-    percentUploaded: 0
+    percentUploaded: 0,
+    typingRef: firebase.database().ref('typing')
   };
 
-  getPath = ()=>{
-    if(this.props.isPrivateChannel){
-      return `chat/private-${this.state.channel.id}`
-    } else{
-      return `chat/public`
+  getPath = () => {
+    if (this.props.isPrivateChannel) {
+      return `chat/private-${this.state.channel.id}`;
+    } else {
+      return `chat/public`;
     }
-}
+  };
   uploadFile = (file, metadata) => {
     const pathToUpload = this.state.channel.id;
     const ref = this.props.getMessagesRef();
@@ -96,6 +97,21 @@ export class MessageForm extends Component {
 
   handleChange = e => this.setState({ [e.target.name]: e.target.value });
 
+  handleKeyDown = () => {
+    const { message, typingRef, channel, user } = this.state;
+    if (message) {
+      typingRef
+        .child(channel.id)
+        .child(user.uid)
+        .set(user.displayName);
+    } else {
+      typingRef
+        .child(channel.id)
+        .child(user.uid)
+        .remove();
+    }
+  };
+
   createMessage = (fileUrl = null) => {
     const message = {
       timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -115,7 +131,7 @@ export class MessageForm extends Component {
 
   sendMessage = () => {
     const { getMessagesRef } = this.props;
-    const { message, channel } = this.state;
+    const { message, channel, typingRef,user } = this.state;
 
     if (message) {
       this.setState({ loading: true });
@@ -125,6 +141,10 @@ export class MessageForm extends Component {
         .set(this.createMessage())
         .then(() => {
           this.setState({ loading: false, message: '', errors: [] });
+          typingRef
+            .child(channel.id)
+            .child(user.uid)
+            .remove();
         })
         .catch(err => {
           console.log(err);
@@ -141,13 +161,21 @@ export class MessageForm extends Component {
   };
 
   render() {
-    const { errors, message, loading, modal,percentUploaded,uploadState } = this.state;
+    const {
+      errors,
+      message,
+      loading,
+      modal,
+      percentUploaded,
+      uploadState
+    } = this.state;
     return (
       <Segment className='message__form'>
         <Input
           fluid
           name='message'
           style={{ marginBottom: '0.7em' }}
+          onKeyDown={this.handleKeyDown}
           value={message}
           label={<Button icon={'add'} />}
           labelPosition='left'
@@ -170,7 +198,7 @@ export class MessageForm extends Component {
           />
           <Button
             color='teal'
-            disabled={uploadState==='uploading'}
+            disabled={uploadState === 'uploading'}
             onClick={this.openModal}
             content='Upload Media'
             labelPosition='right'
@@ -182,7 +210,10 @@ export class MessageForm extends Component {
           closeModal={this.closeModal}
           uploadFile={this.uploadFile}
         />
-        <ProgressBar uploadState={uploadState} percentUploaded={percentUploaded}/>
+        <ProgressBar
+          uploadState={uploadState}
+          percentUploaded={percentUploaded}
+        />
       </Segment>
     );
   }

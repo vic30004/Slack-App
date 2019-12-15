@@ -3,9 +3,10 @@ import { Segment, Comment } from 'semantic-ui-react';
 import MessagessHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import firebase from '../../firebase';
+import Typing from './Typing';
 import Message from './Message';
-import {connect} from 'react-redux'
-import {setUserPosts} from '../../actions'
+import { connect } from 'react-redux';
+import { setUserPosts } from '../../actions';
 
 export class Messages extends Component {
   state = {
@@ -21,7 +22,10 @@ export class Messages extends Component {
     searchLoading: false,
     searchResults: [],
     isChannelStarred: false,
-    usersRef: firebase.database().ref('users')
+    usersRef: firebase.database().ref('users'),
+    typingRef: firebase.database().ref('typing'),
+    typingUsers: [],
+    connectedRef: firebase.database().ref('.info/connected')
   };
 
   componentDidMount() {
@@ -29,27 +33,62 @@ export class Messages extends Component {
 
     if (channel && user) {
       this.addListeners(channel.id);
-      this.addUserStarsListener(channel.id, user.uid)
+      this.addUserStarsListener(channel.id, user.uid);
     }
   }
 
-  addUserStarsListener = (channelId , userId) =>{
+  addUserStarsListener = (channelId, userId) => {
     this.state.usersRef
-    .child(userId)
-    .child('starred')
-    .once('value')
-    .then( data=>{
-      if(data.val()!== null){
-        const channelIds = Object.keys(data.val());
-        const prevStarred = channelIds.includes(channelId);
-        this.setState({isChannelStarred: prevStarred})
-      }
-    })
-  }
+      .child(userId)
+      .child('starred')
+      .once('value')
+      .then(data => {
+        if (data.val() !== null) {
+          const channelIds = Object.keys(data.val());
+          const prevStarred = channelIds.includes(channelId);
+          this.setState({ isChannelStarred: prevStarred });
+        }
+      });
+  };
 
   addListeners = channelId => {
     this.addMessageListener(channelId);
+    this.addTypingListeners(channelId);
   };
+
+  addTypingListeners = channelId => {
+    let typingUsers = [];
+    this.state.typingRef.child(channelId).on('child_added', snap => {
+      if (snap.key !== this.state.user.uid) {
+        typingUsers = typingUsers.concat({
+          id: snap.key,
+          name: snap.val()
+        });
+        this.setState({ typingUsers });
+      }
+    });
+    this.state.typingRef.child(channelId).on('child_removed', snap => {
+      const index = typingUsers.findIndex(user => user.id === snap.key);
+      if (index !== -1) {
+        typingUsers = typingUsers.filter(user => user.id !== snap.key);
+        this.setState({ typingUsers });
+      }
+    });
+    this.state.connectedRef.on('value', snap => {
+      if (snap.val() === true) {
+        this.state.typingRef
+          .child(channelId)
+          .child(this.state.user.uid)
+          .onDisconnect()
+          .remove(err => {
+            if (err !== null) {
+              console.error(err);
+            }
+          });
+      }
+    });
+  };
+
   countUniqueUsers = messages => {
     const uniqueUsers = messages.reduce((acc, message) => {
       if (!acc.includes(message.user.name)) {
@@ -99,7 +138,7 @@ export class Messages extends Component {
         messagesLoading: false
       });
       this.countUniqueUsers(loadedMessages);
-      this.countUserPosts(loadedMessages)
+      this.countUserPosts(loadedMessages);
     });
   };
 
@@ -120,6 +159,23 @@ export class Messages extends Component {
       : '';
   };
 
+  displayTypingUsers = users => {
+    users.length > 0 &&
+      users.map(user => (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '0.2em'
+          }}
+          key={user.id}
+        >
+          <span className='user__typing'>{user.name}</span>
+          <Typing />
+        </div>
+      ));
+  };
+
   getMessagesRef = () => {
     const { messagesRef, privateMessagesRef, privateChannel } = this.state;
     return privateChannel ? privateMessagesRef : messagesRef;
@@ -134,20 +190,20 @@ export class Messages extends Component {
     );
   };
 
-  countUserPosts = messages=>{
-    let userPosts = messages.reduce((acc, message)=>{
-      if(message.user.name in acc) {
-        acc[message.user.name].count +=1;
-      }else{
-        acc[message.user.name]= {
+  countUserPosts = messages => {
+    let userPosts = messages.reduce((acc, message) => {
+      if (message.user.name in acc) {
+        acc[message.user.name].count += 1;
+      } else {
+        acc[message.user.name] = {
           avatar: message.user.avatar,
           count: 1
-        }
+        };
       }
-      return acc
-    },{})
-    this.props.setUserPosts(userPosts)
-  }
+      return acc;
+    }, {});
+    this.props.setUserPosts(userPosts);
+  };
 
   starChannel = () => {
     if (this.state.isChannelStarred) {
@@ -183,7 +239,8 @@ export class Messages extends Component {
       searchTerm,
       searchResults,
       privateChannel,
-      isChannelStarred
+      isChannelStarred,
+      typingUsers
     } = this.state;
     return (
       <Fragment>
@@ -196,10 +253,13 @@ export class Messages extends Component {
           isChannelStarred={isChannelStarred}
         />
         <Segment className='messages'>
-          <Comment.Group  size='large'>
+          <Comment.Group size='large'>
             {searchTerm
               ? this.displayMessages(searchResults)
               : this.displayMessages(messages)}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {this.displayTypingUsers(typingUsers)}
+            </div>
           </Comment.Group>
         </Segment>
         <MessageForm
@@ -214,4 +274,4 @@ export class Messages extends Component {
   }
 }
 
-export default connect(null,{setUserPosts})(Messages);
+export default connect(null, { setUserPosts })(Messages);

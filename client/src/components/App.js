@@ -12,6 +12,7 @@ const App = ({currentUser, currentChannel,isPrivateChannel, userPosts, primaryCo
       <SidePanel 
       key={currentUser && currentUser.uid}
       currentUser={currentUser}
+      currentChannel={currentChannel}
       primaryColor={primaryColor} />
       <Grid.Column style={{marginLeft:320}}> 
       <Messages key={currentChannel && currentChannel.id} currentChannel={currentChannel} currentUser={currentUser} isPrivateChannel={isPrivateChannel}/>
