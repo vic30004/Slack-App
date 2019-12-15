@@ -177,8 +177,8 @@ export class Messages extends Component {
           handleStar={this.handleStar}
           isChannelStarred={isChannelStarred}
         />
-        <Segment>
-          <Comment.Group className='messages'>
+        <Segment className='messages'>
+          <Comment.Group  size='large'>
             {searchTerm
               ? this.displayMessages(searchResults)
               : this.displayMessages(messages)}

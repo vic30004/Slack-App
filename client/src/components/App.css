@@ -10,8 +10,8 @@ body,
 /* Messages */
 
 .messages {
-    height: 70vh;
     overflow-y: scroll;
+    height: 80vh;
 }
 
 /* MessagesForm */
