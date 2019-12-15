@@ -8,7 +8,7 @@ export class DirectMessages extends Component {
     state={
         user: this.props.currentUser,
         users:[],
-        userRef: firebase.database().ref('users'),
+        usersRef: firebase.database().ref('users'),
         connectedRef:firebase.database().ref('.info/connected'),
         presenceRef: firebase.database().ref('presence'),
         activeChannel: ''
@@ -20,10 +20,10 @@ export class DirectMessages extends Component {
         }
     }
 
-    addListeners=(userId)=>{
+    addListeners=(currentUserUid)=>{
         let loadedUsers = [];
-        this.state.userRef.on('child_added', snap=>{
-            if(userId != snap.key){
+        this.state.usersRef.on('child_added', snap=>{
+            if(currentUserUid != snap.key){
                 let user = snap.val();
                 user['uid']= snap.key;
                 user['status'] ='offline';
@@ -33,23 +33,23 @@ export class DirectMessages extends Component {
         })
 
         this.state.connectedRef.on('value', snap=>{
-            if(snap.value === true){
+            if(snap.val() === true){
                 const ref =this.state.presenceRef.child(userId);
                 ref.set(true);
                 ref.onDisconnect().remove(err=>{
-                    if(err!=null){
+                    if(err!==null){
                         console.log(err)
                     }
                 })
             }
         })
         this.state.presenceRef.on('child_added',snap=>{
-            if(userId !== snap.key){
+            if(currentUserUid !== snap.key){
                 this.addStatusToUser(snap.key)
             }
         })
         this.state.presenceRef.on('child_removed',snap=>{
-            if(userId !== snap.key){
+            if(currentUserUid !== snap.key){
                 this.addStatusToUser(snap.key, false)
 
             }
