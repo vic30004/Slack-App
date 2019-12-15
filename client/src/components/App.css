@@ -11,7 +11,7 @@ body,
 
 .messages {
     overflow-y: scroll;
-    height: 80vh;
+    height: 70vh;
 }
 
 /* MessagesForm */
@@ -52,6 +52,7 @@ body,
 /* Colorpannel */
 
 .color__container{
+    cursor: pointer;
     position: relative;
     overflow: hidden;
     width:35px;
